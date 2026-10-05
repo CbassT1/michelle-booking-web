@@ -3,17 +3,17 @@ import { useParams, Link } from 'react-router-dom';
 import ScrollReveal from '../components/ui/ScrollReveal';
 
 export default function ServiceDetail() {
-  const { id } = useParams(); // Obtenemos el ID de la URL
+  const { id } = useParams();
   const [servicio, setServicio] = useState(null);
   const [cargando, setCargando] = useState(true);
 
   useEffect(() => {
-    // Simulamos la carga de datos por ahora
     const cargarDetalle = async () => {
       try {
         const respuesta = await fetch('http://localhost:3000/api/services');
         const data = await respuesta.json();
-        const servicioEncontrado = data.find(s => s.id === parseInt(id));
+        // CORRECCIÓN: Comparamos como cadenas de texto (String) para los UUID de Supabase
+        const servicioEncontrado = data.find(s => String(s.id) === String(id));
         setServicio(servicioEncontrado);
       } finally {
         setCargando(false);
@@ -33,7 +33,6 @@ export default function ServiceDetail() {
         </Link>
         
         <div className="grid grid-cols-1 md:grid-cols-2 gap-12 mt-4">
-          {/* Columna Izquierda: Fotos */}
           <div className="flex flex-col space-y-4">
             <div className="bg-[#f0efed] h-96 flex items-center justify-center rounded-sm">
               <span className="text-gray-400 text-xs tracking-widest uppercase">[ Foto Principal ]</span>
@@ -44,7 +43,6 @@ export default function ServiceDetail() {
             </div>
           </div>
 
-          {/* Columna Derecha: Información y Cuidados */}
           <div className="flex flex-col justify-center">
             <h1 className="text-4xl font-serif mb-4">{servicio.nombre}</h1>
             <div className="flex items-center space-x-4 mb-8">
@@ -63,7 +61,6 @@ export default function ServiceDetail() {
               </ul>
             </div>
 
-            {/* Aquí podríamos redirigir al Home con el estado seteado a "Agendar", pero por ahora solo es un botón visual */}
             <button className="w-full bg-dark text-white py-5 tracking-widest uppercase text-sm hover:bg-gray-700 transition duration-300 shadow-sm hover:shadow-md">
               Agendar este servicio
             </button>
