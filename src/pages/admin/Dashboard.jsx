@@ -3,6 +3,7 @@ import AdminSidebar from '../../components/admin/AdminSidebar';
 import ServiciosView from '../../components/admin/views/ServiciosView';
 import ConfiguracionView from '../../components/admin/views/ConfiguracionView';
 import CursosView from '../../components/admin/views/CursosView';
+import AgendaView from '../../components/admin/views/AgendaView';
 
 export default function Dashboard() {
   const [vistaActiva, setVistaActiva] = useState('resumen');
@@ -31,20 +32,10 @@ export default function Dashboard() {
           </div>
         )}
 
-        {vistaActiva === 'agenda' && (
-          <div className="animate-fade-in-up">
-            <h1 className="text-3xl font-serif mb-8 border-b border-gray-200 pb-4">Agenda y Calendario</h1>
-            <div className="bg-white border border-gray-200 rounded-sm shadow-sm p-12 text-center">
-              <h3 className="text-lg font-medium mb-2">Citas Confirmadas Automáticamente</h3>
-              <p className="text-gray-500 tracking-widest uppercase text-xs max-w-lg mx-auto">
-                Aquí aparecerán las citas de los clientes que ya pagaron su anticipo.
-              </p>
-            </div>
-          </div>
-        )}
+        {vistaActiva === 'agenda' && <AgendaView />}
 
         {vistaActiva === 'servicios' && <ServiciosView />}
-        
+
         {vistaActiva === 'cursos' && <CursosView />}
 
         {vistaActiva === 'agendar-manual' && (

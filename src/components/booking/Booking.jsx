@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import { supabase } from '../../config/supabase';
 
 export default function Booking() {
+  const location = useLocation();
   const [paso, setPaso] = useState(1);
   
   const [servicios, setServicios] = useState([]);
@@ -18,6 +20,7 @@ export default function Booking() {
   const [mesActual, setMesActual] = useState(new Date());
   const horariosBase = ['10:00 AM', '11:30 AM', '01:00 PM', '04:00 PM', '05:30 PM'];
 
+  // Cargar Servicios y atrapar el ID predeterminado si viene de ServiceDetail
   useEffect(() => {
     const fetchServicios = async () => {
       const { data } = await supabase.from('servicios').select('*').order('id');
@@ -27,21 +30,25 @@ export default function Booking() {
           nombre: s.nombre.replace(/\s*\(.*?\)\s*/g, '').trim()
         }));
         setServicios(serviciosLimpios);
+
+        // LÓGICA DE SALTO AUTOMÁTICO
+        if (location.state?.servicioIdPredeterminado) {
+          setServicioId(location.state.servicioIdPredeterminado);
+          setPaso(2); // Salta directo al calendario
+          // Limpiamos el state para que no se quede pegado si navega después
+          window.history.replaceState({}, document.title); 
+        }
       }
       setCargando(false);
     };
     fetchServicios();
-  }, []);
+  }, [location.state]);
 
+  // Buscar horas ocupadas
   useEffect(() => {
     const fetchHorasOcupadas = async () => {
       if (!fecha) return;
-      const { data } = await supabase
-        .from('citas')
-        .select('hora')
-        .eq('fecha', fecha)
-        .neq('estado', 'cancelada');
-        
+      const { data } = await supabase.from('citas').select('hora').eq('fecha', fecha).neq('estado', 'cancelada');
       if (data) setHorasOcupadas(data.map(cita => cita.hora));
     };
     fetchHorasOcupadas();
@@ -69,16 +76,12 @@ export default function Booking() {
 
   const diasEnMes = new Date(mesActual.getFullYear(), mesActual.getMonth() + 1, 0).getDate();
   const primerDiaSemana = new Date(mesActual.getFullYear(), mesActual.getMonth(), 1).getDay();
-  const diasArray = Array.from({ length: primerDiaSemana }, () => null).concat(
-    Array.from({ length: diasEnMes }, (_, i) => i + 1)
-  );
+  const diasArray = Array.from({ length: primerDiaSemana }, () => null).concat(Array.from({ length: diasEnMes }, (_, i) => i + 1));
 
   const cambiarMes = (incremento) => {
     const nuevoMes = new Date(mesActual.getFullYear(), mesActual.getMonth() + incremento, 1);
     const hoy = new Date();
-    if (nuevoMes.getFullYear() < hoy.getFullYear() || (nuevoMes.getFullYear() === hoy.getFullYear() && nuevoMes.getMonth() < hoy.getMonth())) {
-      return;
-    }
+    if (nuevoMes.getFullYear() < hoy.getFullYear() || (nuevoMes.getFullYear() === hoy.getFullYear() && nuevoMes.getMonth() < hoy.getMonth())) return;
     setMesActual(nuevoMes);
   };
 
@@ -108,7 +111,6 @@ export default function Booking() {
     setProcesando(false);
   };
 
-  // --- MOTOR DE CLASIFICACIÓN DE SERVICIOS ---
   const categorias = [
     { titulo: 'Extensiones de Pestañas', keywords: ['set', 'híbridas', 'retiro'], items: [] },
     { titulo: 'Micropigmentación', keywords: ['blush', 'brows', 'strokes', 'neutralización', 'liner', 'punteado', 'remoción', 'química'], items: [] },
@@ -130,7 +132,6 @@ export default function Booking() {
   });
   
   const categoriasActivas = categorias.filter(c => c.items.length > 0);
-  // -------------------------------------------
 
   if (cargando) return <div className="text-center text-gray-400 tracking-widest text-xs animate-pulse py-20">Cargando sistema de reservas...</div>;
 
@@ -140,7 +141,7 @@ export default function Booking() {
         <div className="w-16 h-16 bg-green-50 text-green-600 rounded-full flex items-center justify-center mx-auto mb-6 text-2xl">✓</div>
         <h3 className="text-2xl font-serif mb-4">¡Lugar Apartado Temporalmente!</h3>
         <p className="text-gray-500 mb-8 max-w-md mx-auto">
-          Hemos reservado tu espacio para el <strong>{fecha}</strong> a las <strong>{hora}</strong>. En la versión final, aquí te cobraremos el anticipo de ${servicioSeleccionado?.anticipo} MXN para confirmar tu cita.
+          Hemos reservado tu espacio para el <strong>{fecha}</strong> a las <strong>{hora}</strong>.
         </p>
         <button onClick={() => window.location.reload()} className="text-xs tracking-widest uppercase border-b border-dark pb-1 hover:text-gray-500 transition-colors">
           Hacer otra prueba
