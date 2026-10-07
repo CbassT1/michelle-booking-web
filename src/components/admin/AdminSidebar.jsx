@@ -9,12 +9,13 @@ export default function AdminSidebar({ vistaActiva, setVistaActiva }) {
     navigate('/admin');
   };
 
+  // El orden aquí define exactamente cómo se ven en la pantalla
   const botones = [
     { id: 'resumen', label: 'Resumen' },
     { id: 'agenda', label: 'Agenda' },
     { id: 'servicios', label: 'Servicios' },
-    { id: 'agendar-manual', label: '+ Nueva Cita' },
     { id: 'cursos', label: 'Cursos' },
+    { id: 'agendar-manual', label: '+ Nueva Cita' },
     { id: 'configuracion', label: 'Configuración' }
   ];
 
