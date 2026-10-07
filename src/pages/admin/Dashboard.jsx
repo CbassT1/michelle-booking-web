@@ -4,6 +4,7 @@ import ServiciosView from '../../components/admin/views/ServiciosView';
 import ConfiguracionView from '../../components/admin/views/ConfiguracionView';
 import CursosView from '../../components/admin/views/CursosView';
 import AgendaView from '../../components/admin/views/AgendaView';
+import ResumenView from '../../components/admin/views/ResumenView';
 
 export default function Dashboard() {
   const [vistaActiva, setVistaActiva] = useState('resumen');

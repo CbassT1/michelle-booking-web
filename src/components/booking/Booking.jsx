@@ -20,7 +20,6 @@ export default function Booking() {
   const [mesActual, setMesActual] = useState(new Date());
   const horariosBase = ['10:00 AM', '11:30 AM', '01:00 PM', '04:00 PM', '05:30 PM'];
 
-  // Cargar Servicios y atrapar el ID predeterminado si viene de ServiceDetail
   useEffect(() => {
     const fetchServicios = async () => {
       const { data } = await supabase.from('servicios').select('*').order('id');
@@ -31,11 +30,9 @@ export default function Booking() {
         }));
         setServicios(serviciosLimpios);
 
-        // LÓGICA DE SALTO AUTOMÁTICO
         if (location.state?.servicioIdPredeterminado) {
           setServicioId(location.state.servicioIdPredeterminado);
-          setPaso(2); // Salta directo al calendario
-          // Limpiamos el state para que no se quede pegado si navega después
+          setPaso(2);
           window.history.replaceState({}, document.title); 
         }
       }
@@ -44,7 +41,6 @@ export default function Booking() {
     fetchServicios();
   }, [location.state]);
 
-  // Buscar horas ocupadas
   useEffect(() => {
     const fetchHorasOcupadas = async () => {
       if (!fecha) return;
@@ -229,45 +225,51 @@ export default function Booking() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8 flex-grow">
                 
                 <div>
-                  <div className="border border-gray-200 p-4 rounded-sm">
+                <div className="border border-gray-200 p-4 rounded-sm">
                     <div className="flex justify-between items-center mb-4">
-                      <button onClick={() => cambiarMes(-1)} className="text-gray-400 hover:text-dark px-2">←</button>
-                      <span className="font-medium tracking-widest uppercase text-[10px]">{mesActual.toLocaleDateString('es-MX', { month: 'long', year: 'numeric' })}</span>
-                      <button onClick={() => cambiarMes(1)} className="text-gray-400 hover:text-dark px-2">→</button>
+                    <button onClick={() => cambiarMes(-1)} className="text-gray-400 hover:text-dark px-2">←</button>
+                    <span className="font-medium tracking-widest uppercase text-[10px]">{mesActual.toLocaleDateString('es-MX', { month: 'long', year: 'numeric' })}</span>
+                    <button onClick={() => cambiarMes(1)} className="text-gray-400 hover:text-dark px-2">→</button>
                     </div>
                     <div className="grid grid-cols-7 gap-1 text-center text-[10px] tracking-widest text-gray-400 mb-2">
-                      <span>Do</span><span>Lu</span><span>Ma</span><span>Mi</span><span>Ju</span><span>Vi</span><span>Sa</span>
+                    <span>Do</span><span>Lu</span><span>Ma</span><span>Mi</span><span>Ju</span><span>Vi</span><span>Sa</span>
                     </div>
                     <div className="grid grid-cols-7 gap-1 text-center text-sm">
-                      {diasArray.map((dia, index) => {
+                    {diasArray.map((dia, index) => {
                         if (!dia) return <span key={`vacio-${index}`} className="py-2"></span>;
                         
                         const fechaEvaluada = new Date(mesActual.getFullYear(), mesActual.getMonth(), dia);
                         const hoy = new Date();
                         hoy.setHours(0,0,0,0);
+
                         const esPasado = fechaEvaluada < hoy;
+                        const diaSemana = fechaEvaluada.getDay();
+                        const esDescanso = diaSemana === 0 || diaSemana === 1;
+                        const deshabilitado = esPasado || esDescanso;
                         
                         const fechaFormateada = `${mesActual.getFullYear()}-${String(mesActual.getMonth() + 1).padStart(2, '0')}-${String(dia).padStart(2, '0')}`;
                         const esSeleccionado = fecha === fechaFormateada;
 
                         return (
-                          <button 
+                        <button 
                             key={dia}
-                            disabled={esPasado}
+                            disabled={deshabilitado}
                             onClick={() => seleccionarDia(dia)}
+                            title={esDescanso ? "Día de descanso" : ""}
                             className={`py-2 rounded-full transition-all text-xs ${
-                              esPasado ? 'text-gray-300 opacity-30 cursor-not-allowed line-through' 
-                              : esSeleccionado ? 'bg-dark text-white font-medium shadow-md' 
-                              : 'hover:bg-gray-100 text-gray-700'
+                            esDescanso ? 'text-red-300 opacity-50 cursor-not-allowed line-through bg-red-50'
+                            : esPasado ? 'text-gray-300 opacity-30 cursor-not-allowed line-through' 
+                            : esSeleccionado ? 'bg-dark text-white font-medium shadow-md' 
+                            : 'hover:bg-gray-100 text-gray-700'
                             }`}
-                          >
+                        >
                             {dia}
-                          </button>
+                        </button>
                         )
-                      })}
+                    })}
                     </div>
-                  </div>
                 </div>
+                </div>               
                 
                 <div>
                   {!fecha ? (
